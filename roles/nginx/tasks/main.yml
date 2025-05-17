@@ -1,0 +1,33 @@
+---
+# tasks file for nginx on Ubuntu
+- name: Update apt package index
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600  # Update if older than 1 hour
+
+- name: Install Nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: yes  # Updates cache if not already done
+
+- name: Ensure Nginx is enabled and started
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Copy custom index.html
+  ansible.builtin.copy:
+    src: files/index.html
+    dest: /var/www/html/index.nginx-debian.html  # Ubuntu's default Nginx index location
+    owner: www-data
+    group: www-data
+    mode: '0644'
+  notify: restart nginx
+
+- name: Allow HTTP traffic through UFW
+  ansible.builtin.ufw:
+    rule: allow
+    port: '80'
+    proto: tcp
